@@ -1,4 +1,7 @@
 from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report,confusion_matrix
 import csv
 import numpy as np
 import warnings
@@ -35,7 +38,6 @@ with open("data.csv") as data:
             valuation = np.float64(row[9])
             company_info = [askedFor, exchangeForStake, valuation, code]
             companies.append(company_info)
-            #company_megascore = askedFor * exchangeForStake * valuation * code
             x.append(company_info)
             deal = row[0]
             if deal == "TRUE":
@@ -50,31 +52,40 @@ class NeuralNet():
     def __init__(self, model=None):
         self.model = model
         self.company = None
+        self.x_test = None
+        self.y_test = None
 
     def init_model(self):
-        mlp = MLPClassifier(activation='logistic', solver='lbfgs', alpha=1e-9999,
-                            hidden_layer_sizes=(5, 2), random_state=1)
-        mlp.fit(x,y)
+        mlp = MLPClassifier()
+        X_train, X_test, y_train, y_test = train_test_split(x, y)
+        self.y_test = y_test
+        scaler = StandardScaler()
+        scaler.fit(X_train)
+        X_train = scaler.transform(X_train)
+        self.x_test = scaler.transform(X_test)
+        mlp.fit(X_train,y_train)
         self.model = mlp
 
+    def reliability_scaler(self):
+        prediction = self.model.predict(self.x_test)
+        matrix = confusion_matrix(self.y_test, prediction).ravel()
+        num = 1
+        for i in matrix:
+            num *= i
+        return num / 1000000
+
     def predictOffer(self, company):
-        prediction = self.model.predict([company])
-        probability = self.model.predict_proba([company])
-        ans = prediction.item()
-        prob = float(list(probability)[0][1])
-        if prob > 0.53:
-            prob = 1
-        if ans == 1:
-            return company[0] * prob
-        else:
-            return 0
+        prediction = self.model.predict([company]).item()
+        original = company[0]
+        ans_scale = 1
+        threshold = 0.1   # may change as necessary
+        if prediction == 0.0:
+            ans_scale = 1 - threshold
+        elif prediction == 1.0:
+            ans_scale = 1 + threshold
+        scaled = float(original) * float(self.reliability_scaler()) * ans_scale
+        return scaled
 
-    def predictWithProb(self, company):  # where company is a tuple with four items in corresponding order
-        #print(company)
-        #megascore = company[0] * company[1] * company[2] * company[3]
-
-        prediction = self.model.predict([company])
-        probability = self.model.predict_proba([company])
-        ans = prediction.item()
-        prob = float(list(probability)[0][1]) * 100
-        return [ans, prob]
+    def checkPerformance(self):
+        prediction = self.model.predict(self.x_test)
+        print(classification_report(self.y_test, prediction))
