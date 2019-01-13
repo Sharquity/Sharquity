@@ -74,21 +74,25 @@ class NeuralNet():
         return ans / 1.5
 
     def predictOffer(self, company):
-        prediction = self.model.predict([company]).item()
-        #print('cc', company)
-        original = company[0]
-        ans_scale = 1
-        threshold = 0.1   # may change as necessary
-        if prediction == 0.0:
-            ans_scale = 1 - threshold
-        elif prediction == 1.0:
-            ans_scale = 1 + threshold
-        #print('o', original)
-        #print('rs2', self.reliability_scaler())
-        #print('as', ans_scale)
-        scaled = float(original) * float(self.reliability_scaler()) * ans_scale
-        #print(scaled)
-        return scaled
+        answers = []
+        for i in range(20):
+            prediction = self.model.predict([company]).item()
+            #print('cc', company)
+            original = company[0]
+            ans_scale = 1
+            threshold = 0.1   # may change as necessary
+            if prediction == 0.0:
+                ans_scale = 1 - threshold
+            elif prediction == 1.0:
+                ans_scale = 1 + threshold
+            #print('o', original)
+            #print('rs2', self.reliability_scaler())
+            #print('as', ans_scale)
+            scaled = float(original) * float(self.reliability_scaler()) * ans_scale
+            #print(scaled)
+            answers.append(scaled)
+            self.init_model()
+        return sum(answers) / len(answers)
 
     def checkPerformance(self):
         prediction = self.model.predict(self.x_test)

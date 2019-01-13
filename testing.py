@@ -20,10 +20,14 @@ def evaluate(company):
 def average(ls):
     return sum(ls) / len(ls)
 
-blue = average([evaluate(bluetooth_implant) for i in range(50)])
-ava = average([evaluate(ava_the_elephant) for j in range(50)])
-scrub = average([evaluate(scrub_daddy) for k in range(50)])
+blue = [evaluate(bluetooth_implant) for i in range(2)]
+#ava = [evaluate(ava_the_elephant) for j in range(50)]
+#scrub = [evaluate(scrub_daddy) for k in range(50)]
 
+
+print(blue)
+#print(ava)
+#print(scrub)
 '''
 net = NeuralNet()
 net.init_model()
