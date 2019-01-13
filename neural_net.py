@@ -56,7 +56,7 @@ class NeuralNet():
         self.y_test = None
 
     def init_model(self):
-        mlp = MLPClassifier()
+        mlp = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
         X_train, X_test, y_train, y_test = train_test_split(x, y)
         self.y_test = y_test
         scaler = StandardScaler()
@@ -68,14 +68,14 @@ class NeuralNet():
 
     def reliability_scaler(self):
         prediction = self.model.predict(self.x_test)
-        matrix = confusion_matrix(self.y_test, prediction).ravel()
-        num = 1
-        for i in matrix:
-            num *= i
-        return num / 1000000
+        tn, fp, fn, tp = confusion_matrix(self.y_test, prediction).ravel()
+        #print("tn", tn, "fp", fp, "fn", fn, "tp", tp)
+        ans = ((float(tn) + float(tp)) / (float(fp) + float(fn)))
+        return ans / 1.5
 
     def predictOffer(self, company):
         prediction = self.model.predict([company]).item()
+        #print('cc', company)
         original = company[0]
         ans_scale = 1
         threshold = 0.1   # may change as necessary
@@ -83,7 +83,11 @@ class NeuralNet():
             ans_scale = 1 - threshold
         elif prediction == 1.0:
             ans_scale = 1 + threshold
+        #print('o', original)
+        #print('rs2', self.reliability_scaler())
+        #print('as', ans_scale)
         scaled = float(original) * float(self.reliability_scaler()) * ans_scale
+        #print(scaled)
         return scaled
 
     def checkPerformance(self):

@@ -3,13 +3,33 @@ import random
 
 badCompany = (688657,3232342,12,18)
 goodCompany = (150000,25,600000,2)
+bluetooth_implant = (1000000,15,6666667,1)  # should be consistently lower than output model
+ava_the_elephant = (50000,15,333333,3)  # somewhat successful product
+scrub_daddy = (100000,10,1000000,9)  # most successful product
+
 
 net = NeuralNet()
 net.init_model()
-print(net.predictOffer(badCompany))
+print(net.checkPerformance())
 
-for i in range(50):
-    askedFor = random.randint(10000, 5000000)
-    randCompany = (askedFor, random.randint(3, 40), random.randint(40000, 30000000), random.randint(1,54))
+def evaluate(company):
+    offer = net.predictOffer(company)
     net.init_model()
-    print(str(askedFor) + " --> " + str(net.predictOffer(randCompany)))
+    return offer
+
+def average(ls):
+    return sum(ls) / len(ls)
+
+blue = average([evaluate(bluetooth_implant) for i in range(50)])
+ava = average([evaluate(ava_the_elephant) for j in range(50)])
+scrub = average([evaluate(scrub_daddy) for k in range(50)])
+
+'''
+net = NeuralNet()
+net.init_model()
+print(net.predictOffer([70000, 39, 40000000000, 5]))
+net.init_model()
+print(net.predictOffer([70000, 39, 40000000, 4]))
+'''
+
+# 1.48, 1.38,
